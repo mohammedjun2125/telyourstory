@@ -99,8 +99,8 @@ export default function ExplorePage() {
                         key={category}
                         onClick={() => setSelectedCategory(category)}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === category
-                                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
-                                : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                            ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
+                            : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                             }`}
                     >
                         {category}
@@ -130,9 +130,13 @@ export default function ExplorePage() {
                             >
                                 <Link href={`/story/${story.id}`}>
                                     <Card className="h-full border-none bg-secondary/20 hover:bg-secondary/40 transition-colors group overflow-hidden">
-                                        <div className={`h-40 w-full bg-gradient-to-br ${story.color} relative`}>
-                                            <div className="absolute inset-0 bg-black/5" />
-                                            <div className="absolute bottom-4 left-4">
+                                        <div className={`h-40 w-full bg-gradient-to-br ${story.color} relative overflow-hidden`}>
+                                            {story.image ? (
+                                                <img src={story.image} alt={story.title} className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
+                                            ) : (
+                                                <div className="absolute inset-0 bg-black/5" />
+                                            )}
+                                            <div className="absolute bottom-4 left-4 z-10">
                                                 <span className="text-xs font-bold uppercase tracking-wider bg-black/20 text-white px-2 py-1 rounded backdrop-blur-sm">
                                                     {story.category}
                                                 </span>

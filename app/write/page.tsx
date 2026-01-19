@@ -2,19 +2,40 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Cloud, CloudOff, Loader2 } from "lucide-react";
+import { ArrowLeft, Cloud, CloudOff, Loader2, ImagePlus, X } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useRef } from "react";
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+const categories = ["Life", "Adventure", "Career", "Family", "Love"];
 
 export default function WritePage() {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [category, setCategory] = useState("Life");
+    const [image, setImage] = useState<string | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setImage(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handlePublish = async () => {
         if (!title || !content) return;
@@ -26,12 +47,12 @@ export default function WritePage() {
                 content,
                 author: "Anonymous", // TODO: Auth
                 excerpt: content.substring(0, 150) + "...",
-                category: "Life", // TODO: Category selector
+                category,
+                image, // Base64 string
                 createdAt: serverTimestamp(),
-                tags: ["New", "Story"] // TODO: Tag selector
+                tags: ["New", "Story"]
             });
 
-            // Redirect to explore after publish
             router.push("/explore");
         } catch (error) {
             console.error("Error adding document: ", error);
@@ -44,7 +65,6 @@ export default function WritePage() {
     return (
         <div className="min-h-screen bg-background flex flex-col">
 
-            {/* Editor Header */}
             <header className="border-b border-border bg-background/50 backdrop-blur sticky top-0 z-40 px-4 h-16 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <Link href="/">
@@ -61,15 +81,58 @@ export default function WritePage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm">Category: Life</Button>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="w-32 justify-between">
+                                {category} <span className="opacity-50">▾</span>
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {categories.map((c) => (
+                                <DropdownMenuItem key={c} onClick={() => setCategory(c)}>
+                                    {c}
+                                </DropdownMenuItem>
+                            ))}
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+
                     <Button size="sm" className="gap-2" onClick={handlePublish} disabled={isPublishing || !title || !content}>
                         {isPublishing ? <Loader2 className="size-4 animate-spin" /> : "Publish Story"}
                     </Button>
                 </div>
             </header>
 
-            {/* Editor Workspace */}
             <main className="flex-1 container max-w-3xl mx-auto py-12 px-4">
+                <div className="mb-8">
+                    {image ? (
+                        <div className="relative group rounded-xl overflow-hidden border border-border h-64 md:h-96 w-full">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={image} alt="Cover" className="w-full h-full object-cover" />
+                            <button
+                                onClick={() => setImage(null)}
+                                className="absolute top-4 right-4 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full backdrop-blur-sm transition-colors opacity-0 group-hover:opacity-100"
+                            >
+                                <X className="size-4" />
+                            </button>
+                        </div>
+                    ) : (
+                        <div
+                            onClick={() => fileInputRef.current?.click()}
+                            className="h-24 w-full border-2 border-dashed border-muted-foreground/20 rounded-xl flex items-center justify-center gap-2 text-muted-foreground hover:bg-accent/50 hover:border-muted-foreground/40 transition-all cursor-pointer"
+                        >
+                            <ImagePlus className="size-5" />
+                            <span className="text-sm font-medium">Add Cover Image</span>
+                        </div>
+                    )}
+                    <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                    />
+                </div>
+
                 <Input
                     className="text-4xl md:text-5xl font-bold border-none shadow-none px-0 h-auto placeholder:text-muted-foreground/30 focus-visible:ring-0 bg-transparent mb-8"
                     placeholder="Your Title Here..."

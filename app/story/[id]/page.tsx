@@ -4,13 +4,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, Heart, Share2, Loader2, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Heart, Share2, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { format } from "date-fns";
+import Link from "next/link";
 
 export default function StoryPage() {
     const params = useParams();
@@ -54,7 +55,7 @@ export default function StoryPage() {
             <div className="min-h-screen flex flex-col items-center justify-center gap-4">
                 <AlertCircle className="size-12 text-destructive" />
                 <h1 className="text-2xl font-bold">{error || "Story not found"}</h1>
-                <Button asChild><a href="/explore">Go Back</a></Button>
+                <Button asChild><Link href="/explore">Go Back</Link></Button>
             </div>
         );
     }
@@ -62,11 +63,23 @@ export default function StoryPage() {
     return (
         <article className="min-h-screen pb-20">
             {/* Hero Image */}
-            <div className="h-[50vh] w-full bg-slate-900 relative">
+            <div className="h-[50vh] w-full bg-slate-900 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent z-10" />
-                <div className="w-full h-full bg-indigo-900/20 flex items-center justify-center text-white/10 text-9xl font-bold overflow-hidden select-none">
-                    img
-                </div>
+
+                {story.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={story.image} alt={story.title} className="w-full h-full object-cover opacity-80" />
+                ) : (
+                    <div className="w-full h-full bg-indigo-900/20 flex items-center justify-center text-white/10 text-9xl font-bold select-none">
+                        {story.category?.[0] || "S"}
+                    </div>
+                )}
+
+                <Link href="/explore" className="absolute top-4 left-4 z-20">
+                    <Button variant="outline" size="icon" className="rounded-full bg-background/20 border-white/10 hover:bg-background/40 text-white">
+                        <ArrowLeft className="size-5" />
+                    </Button>
+                </Link>
             </div>
 
             <div className="container max-w-4xl mx-auto px-4 -mt-32 relative z-20">
@@ -76,6 +89,11 @@ export default function StoryPage() {
                     className="space-y-6"
                 >
                     <div className="flex gap-2 mb-4">
+                        {story.category && (
+                            <Badge variant="secondary" className="glass border-none text-white bg-primary/80 hover:bg-primary">
+                                {story.category}
+                            </Badge>
+                        )}
                         {story.tags?.map((tag: string) => (
                             <Badge key={tag} variant="secondary" className="glass border-none text-white bg-white/10 hover:bg-white/20">
                                 {tag}

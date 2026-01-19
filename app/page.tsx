@@ -31,7 +31,7 @@ export default function Home() {
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-[100px] animate-pulse" />
 
         <motion.div
-          className="text-center max-w-4xl space-y-6"
+          className="text-center max-w-4xl space-y-6 relative z-10"
           initial="initial"
           animate="animate"
           variants={stagger}
