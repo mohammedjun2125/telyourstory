@@ -1,68 +1,97 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { PenTool, Library } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
-
+import { PenTool, Share2, LogOut, User } from "lucide-react";
+import Link from "next/link";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useAuth } from "@/components/auth-provider";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function Navbar() {
-    const pathname = usePathname();
-
-    const links = [
-        { href: "/explore", label: "Explore", icon: Library },
-        { href: "/about", label: "About", icon: null },
-    ];
+    const { user, logout } = useAuth();
 
     return (
-        <motion.header
-            initial={{ y: -100 }}
-            animate={{ y: 0 }}
-            className="fixed top-0 left-0 right-0 z-50 px-4 md:px-8 py-4 pointer-events-none"
-        >
-            <div className="max-w-7xl mx-auto flex items-center justify-between pointer-events-auto">
+        <nav className="fixed top-0 left-0 right-0 z-50 py-4 px-4 md:px-8 pointer-events-none">
+            <div className="max-w-7xl mx-auto flex items-center justify-between p-4 rounded-2xl glass shadow-lg pointer-events-auto transition-all">
                 {/* Logo */}
-                <Link href="/" className="flex items-center gap-2 group">
-                    <div className="size-8 rounded-full bg-gradient-to-tr from-primary to-purple-400 flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:shadow-primary/50 transition-shadow">
-                        t
+                <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tighter">
+                    <div className="size-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary">
+                        <Share2 className="size-5" />
                     </div>
-                    <span className="font-bold text-xl tracking-tight hidden md:block">
-                        telyourstory
-                    </span>
+                    <span className="hidden md:inline">telyourstory</span>
                 </Link>
 
                 {/* Navigation */}
-                <nav className="hidden md:flex items-center gap-1 bg-white/5 backdrop-blur-xl border border-white/10 px-2 py-1.5 rounded-full shadow-lg">
-                    {links.map((link) => (
-                        <Link
-                            key={link.href}
-                            href={link.href}
-                            className={cn(
-                                "px-4 py-2 rounded-full text-sm font-medium transition-colors hover:text-primary",
-                                pathname === link.href
-                                    ? "bg-white/10 text-primary"
-                                    : "text-muted-foreground"
-                            )}
-                        >
-                            {link.label}
-                        </Link>
-                    ))}
-                </nav>
+                <div className="flex items-center gap-6 text-sm font-medium">
+                    <Link href="/explore" className="text-muted-foreground hover:text-foreground transition-colors">
+                        Explore
+                    </Link>
+                    <Link href="/about" className="text-muted-foreground hover:text-foreground transition-colors">
+                        About
+                    </Link>
+                </div>
 
                 {/* Actions */}
                 <div className="flex items-center gap-3">
                     <ModeToggle />
-                    <Link href="/write">
-                        <Button variant="default" size="sm" className="gap-2 shadow-lg shadow-primary/20">
-                            <PenTool className="size-4" />
-                            <span className="hidden md:inline">Write Story</span>
-                        </Button>
-                    </Link>
+
+                    {user ? (
+                        <div className="flex items-center gap-3">
+                            <Link href="/write">
+                                <Button size="sm" className="hidden md:flex rounded-full gap-2 shadow-lg shadow-primary/20">
+                                    <PenTool className="size-4" />
+                                    Write Story
+                                </Button>
+                            </Link>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Avatar className="size-9 cursor-pointer border border-border hover:border-primary transition-colors">
+                                        <AvatarImage src={user.photoURL || ""} />
+                                        <AvatarFallback>{user.displayName?.[0] || user.email?.[0] || "U"}</AvatarFallback>
+                                    </Avatar>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{user.displayName || "User"}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                    <DropdownMenuSeparator />
+                                    <Link href="/write">
+                                        <DropdownMenuItem className="md:hidden">
+                                            <PenTool className="mr-2 size-4" />
+                                            Write Story
+                                        </DropdownMenuItem>
+                                    </Link>
+                                    <DropdownMenuItem onClick={() => logout()}>
+                                        <LogOut className="mr-2 size-4" />
+                                        Log out
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
+                    ) : (
+                        <div className="flex items-center gap-2">
+                            <Link href="/login">
+                                <Button variant="ghost" size="sm">Sign In</Button>
+                            </Link>
+                            <Link href="/signup">
+                                <Button size="sm" className="rounded-full shadow-lg shadow-primary/20">Get Started</Button>
+                            </Link>
+                        </div>
+                    )}
                 </div>
             </div>
-        </motion.header>
+        </nav>
     );
 }

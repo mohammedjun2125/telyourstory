@@ -1,20 +1,24 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAnalytics, isSupported } from "firebase/analytics";
 import { getFirestore } from "firebase/firestore";
+import { getAuth, GoogleAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyBQU7ULd-1fArBcknNvQu4H6_5Qf5gEJDo",
-    authDomain: "telyourstory-dab5a.firebaseapp.com",
-    projectId: "telyourstory-dab5a",
-    storageBucket: "telyourstory-dab5a.firebasestorage.app",
-    messagingSenderId: "949221115834",
-    appId: "1:949221115834:web:59e860defdc2db83eebf83",
-    measurementId: "G-EW9HKXSDNZ"
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase (singleton pattern to avoid reloading in dev)
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
+const auth = getAuth(app);
+const googleProvider = new GoogleAuthProvider();
+
 let analytics: import("firebase/analytics").Analytics | undefined;
 
 if (typeof window !== "undefined") {
@@ -25,4 +29,4 @@ if (typeof window !== "undefined") {
     });
 }
 
-export { app, db, analytics };
+export { app, db, auth, googleProvider, analytics };

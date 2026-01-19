@@ -5,6 +5,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { Footer } from "@/components/layout/footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import Analytics from "@/components/analytics";
+import { AuthProvider } from "@/components/auth-provider";
 
 const outfit = Outfit({
   subsets: ["latin"],
@@ -32,12 +33,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Analytics />
-          <Navbar />
-          <main className="flex-1 pt-20">
-            {children}
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Analytics />
+            <Navbar />
+            <main className="flex-1 pt-20">
+              {children}
+            </main>
+            <Footer />
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

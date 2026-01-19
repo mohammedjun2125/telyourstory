@@ -4,20 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Cloud, CloudOff, Loader2, ImagePlus, X } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { useState, useRef, useEffect } from "react";
+import { addDoc, collection, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/components/auth-provider";
 
 const categories = ["Life", "Adventure", "Career", "Family", "Love"];
 
 export default function WritePage() {
+    const { user, loading } = useAuth();
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [category, setCategory] = useState("Life");
@@ -25,6 +27,41 @@ export default function WritePage() {
     const [isPublishing, setIsPublishing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push("/login");
+        }
+    }, [user, loading, router]);
+
+    // Logic for editing
+    const searchParams = useSearchParams();
+    const editId = searchParams.get("id");
+
+    useEffect(() => {
+        if (editId && user) {
+            const fetchStory = async () => {
+                const docRef = doc(db, "stories", editId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    const data = docSnap.data();
+                    if (data.authorId !== user.uid) {
+                        alert("You are not authorized to edit this story.");
+                        router.push("/explore");
+                        return;
+                    }
+                    setTitle(data.title);
+                    setContent(data.content);
+                    setCategory(data.category);
+                    setImage(data.image);
+                } else {
+                    alert("Story not found.");
+                    router.push("/explore");
+                }
+            }
+            fetchStory();
+        }
+    }, [editId, user, router]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -38,29 +75,46 @@ export default function WritePage() {
     };
 
     const handlePublish = async () => {
-        if (!title || !content) return;
+        if (!title || !content || !user) return;
 
         setIsPublishing(true);
         try {
-            await addDoc(collection(db, "stories"), {
+            const storyData = {
                 title,
                 content,
-                author: "Anonymous", // TODO: Auth
+                author: user.displayName || "Anonymous",
+                authorId: user.uid,
                 excerpt: content.substring(0, 150) + "...",
                 category,
                 image, // Base64 string
-                createdAt: serverTimestamp(),
-                tags: ["New", "Story"]
-            });
+                updatedAt: serverTimestamp(),
+                tags: ["Story"]
+            };
 
-            router.push("/explore");
+            if (editId) {
+                await updateDoc(doc(db, "stories", editId), storyData);
+            } else {
+                await addDoc(collection(db, "stories"), {
+                    ...storyData,
+                    createdAt: serverTimestamp(),
+                    tags: ["New"]
+                });
+            }
+
+            router.push(editId ? `/story/${editId}` : "/explore");
         } catch (error) {
-            console.error("Error adding document: ", error);
-            alert("Failed to publish story. Please try again.");
+            console.error("Error saving document: ", error);
+            alert("Failed to save story. Please try again.");
         } finally {
             setIsPublishing(false);
         }
     };
+
+    if (loading) {
+        return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
+    }
+
+    if (!user) return null;
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
@@ -97,7 +151,7 @@ export default function WritePage() {
                     </DropdownMenu>
 
                     <Button size="sm" className="gap-2" onClick={handlePublish} disabled={isPublishing || !title || !content}>
-                        {isPublishing ? <Loader2 className="size-4 animate-spin" /> : "Publish Story"}
+                        {isPublishing ? <Loader2 className="size-4 animate-spin" /> : (editId ? "Update Story" : "Publish Story")}
                     </Button>
                 </div>
             </header>

@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Calendar, Clock, Heart, Share2, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { Calendar, Clock, Heart, Share2, Loader2, AlertCircle, ArrowLeft, PenSquare } from "lucide-react";
 import { useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
@@ -12,10 +12,12 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { format } from "date-fns";
 import Link from "next/link";
+import { useAuth } from "@/components/auth-provider";
 
 export default function StoryPage() {
     const params = useParams();
     const id = params.id as string;
+    const { user } = useAuth();
     const [story, setStory] = useState<any>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -60,6 +62,8 @@ export default function StoryPage() {
         );
     }
 
+    const isAuthor = user && story.authorId && user.uid === story.authorId;
+
     return (
         <article className="min-h-screen pb-20">
             {/* Hero Image */}
@@ -80,6 +84,16 @@ export default function StoryPage() {
                         <ArrowLeft className="size-5" />
                     </Button>
                 </Link>
+
+                {isAuthor && (
+                    <Button className="absolute top-4 right-4 z-20 gap-2 rounded-full shadow-xl" asChild>
+                        {/* Placeholder for edit functionality - for now it just goes to write page */}
+                        <Link href={`/write?id=${id}`}>
+                            <PenSquare className="size-4" />
+                            Edit Story
+                        </Link>
+                    </Button>
+                )}
             </div>
 
             <div className="container max-w-4xl mx-auto px-4 -mt-32 relative z-20">
