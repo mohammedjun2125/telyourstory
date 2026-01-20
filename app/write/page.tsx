@@ -6,8 +6,9 @@ import { ArrowLeft, Cloud, CloudOff, Loader2, ImagePlus, X } from "lucide-react"
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { addDoc, collection, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, storage } from "@/lib/firebase";
 import { useRouter, useSearchParams } from "next/navigation";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -24,6 +25,7 @@ export default function WritePage() {
     const [content, setContent] = useState("");
     const [category, setCategory] = useState("Life");
     const [image, setImage] = useState<string | null>(null);
+    const [imageFile, setImageFile] = useState<File | null>(null);
     const [isPublishing, setIsPublishing] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
@@ -66,6 +68,7 @@ export default function WritePage() {
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
+            setImageFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setImage(reader.result as string);
@@ -79,6 +82,14 @@ export default function WritePage() {
 
         setIsPublishing(true);
         try {
+            let imageUrl = image;
+
+            if (imageFile) {
+                const storageRef = ref(storage, `story-images/${user.uid}/${Date.now()}-${imageFile.name}`);
+                await uploadBytes(storageRef, imageFile);
+                imageUrl = await getDownloadURL(storageRef);
+            }
+
             const storyData = {
                 title,
                 content,
@@ -86,7 +97,7 @@ export default function WritePage() {
                 authorId: user.uid,
                 excerpt: content.substring(0, 150) + "...",
                 category,
-                image, // Base64 string
+                image: imageUrl, // URL from Firebase Storage
                 updatedAt: serverTimestamp(),
                 tags: ["Story"]
             };
