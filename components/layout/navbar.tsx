@@ -43,53 +43,22 @@ export function Navbar() {
                 <div className="flex items-center gap-3">
                     <ModeToggle />
 
-                    {user ? (
-                        <div className="flex items-center gap-3">
-                            <Link href="/write">
-                                <Button size="sm" className="hidden md:flex rounded-full gap-2 shadow-lg shadow-primary/20">
-                                    <PenTool className="size-4" />
-                                    Write Story
-                                </Button>
-                            </Link>
+                    <Link href="/write">
+                        <Button size="sm" className="hidden md:flex rounded-full gap-2 shadow-lg shadow-primary/20">
+                            <PenTool className="size-4" />
+                            Write Story
+                        </Button>
+                    </Link>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Avatar className="size-9 cursor-pointer border border-border hover:border-primary transition-colors">
-                                        <AvatarImage src={user.photoURL || ""} />
-                                        <AvatarFallback>{user.displayName?.[0] || user.email?.[0] || "U"}</AvatarFallback>
-                                    </Avatar>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuLabel className="font-normal">
-                                        <div className="flex flex-col space-y-1">
-                                            <p className="text-sm font-medium leading-none">{user.displayName || "User"}</p>
-                                            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
-                                        </div>
-                                    </DropdownMenuLabel>
-                                    <DropdownMenuSeparator />
-                                    <Link href="/write">
-                                        <DropdownMenuItem className="md:hidden">
-                                            <PenTool className="mr-2 size-4" />
-                                            Write Story
-                                        </DropdownMenuItem>
-                                    </Link>
-                                    <DropdownMenuItem onClick={() => logout()}>
-                                        <LogOut className="mr-2 size-4" />
-                                        Log out
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            <Link href="/login">
-                                <Button variant="ghost" size="sm">Sign In</Button>
-                            </Link>
-                            <Link href="/signup">
-                                <Button size="sm" className="rounded-full shadow-lg shadow-primary/20">Get Started</Button>
-                            </Link>
-                        </div>
-                    )}
+                    {/* Mobile Write Button */}
+                    <Link href="/write">
+                        <Button size="icon" variant="ghost" className="md:hidden rounded-full">
+                            <PenTool className="size-5" />
+                        </Button>
+                    </Link>
+
+                    {/* Optional: Keep Login hidden or minimal if user wants to re-enable later, 
+                        but for now removing to comply with "remove login system" request fully. */}
                 </div>
             </div>
         </nav>

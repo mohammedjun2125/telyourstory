@@ -30,28 +30,30 @@ export default function WritePage() {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const router = useRouter();
 
-    useEffect(() => {
-        if (!loading && !user) {
-            router.push("/login");
-        }
-    }, [user, loading, router]);
+    // Removed Auth Redirect to allow anonymous writing
+    // useEffect(() => {
+    //   if (!loading && !user) {
+    //       router.push("/login");
+    //   }
+    // }, [user, loading, router]);
 
     // Logic for editing
     const searchParams = useSearchParams();
     const editId = searchParams.get("id");
 
     useEffect(() => {
-        if (editId && user) {
+        if (editId) {
             const fetchStory = async () => {
                 const docRef = doc(db, "stories", editId);
                 const docSnap = await getDoc(docRef);
                 if (docSnap.exists()) {
                     const data = docSnap.data();
-                    if (data.authorId !== user.uid) {
-                        alert("You are not authorized to edit this story.");
-                        router.push("/explore");
-                        return;
-                    }
+                    // Removed Auth Ownership check for simpler debugging/usage as requested
+                    // if (data.authorId !== user?.uid) {
+                    //     alert("You are not authorized to edit this story.");
+                    //     router.push("/explore");
+                    //     return;
+                    // }
                     setTitle(data.title);
                     setContent(data.content);
                     setCategory(data.category);
@@ -63,7 +65,7 @@ export default function WritePage() {
             }
             fetchStory();
         }
-    }, [editId, user, router]);
+    }, [editId, router]);
 
     const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -78,14 +80,14 @@ export default function WritePage() {
     };
 
     const handlePublish = async () => {
-        if (!title || !content || !user) return;
+        if (!title || !content) return;
 
         setIsPublishing(true);
         try {
             let imageUrl = image;
 
             if (imageFile) {
-                const storageRef = ref(storage, `story-images/${user.uid}/${Date.now()}-${imageFile.name}`);
+                const storageRef = ref(storage, `story-images/${user?.uid || "anonymous"}/${Date.now()}-${imageFile.name}`);
                 await uploadBytes(storageRef, imageFile);
                 imageUrl = await getDownloadURL(storageRef);
             }
@@ -93,8 +95,8 @@ export default function WritePage() {
             const storyData = {
                 title,
                 content,
-                author: user.displayName || "Anonymous",
-                authorId: user.uid,
+                author: user?.displayName || "Anonymous",
+                authorId: user?.uid || "anonymous",
                 excerpt: content.substring(0, 150) + "...",
                 category,
                 image: imageUrl, // URL from Firebase Storage
@@ -120,12 +122,6 @@ export default function WritePage() {
             setIsPublishing(false);
         }
     };
-
-    if (loading) {
-        return <div className="min-h-screen flex items-center justify-center"><Loader2 className="animate-spin" /></div>;
-    }
-
-    if (!user) return null;
 
     return (
         <div className="min-h-screen bg-background flex flex-col">

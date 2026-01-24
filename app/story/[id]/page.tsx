@@ -85,15 +85,17 @@ export default function StoryPage() {
                     </Button>
                 </Link>
 
+                {/* Edit button disabled as auth system is temporarily removed */}
+                {/*
                 {isAuthor && (
                     <Button className="absolute top-4 right-4 z-20 gap-2 rounded-full shadow-xl" asChild>
-                        {/* Placeholder for edit functionality - for now it just goes to write page */}
                         <Link href={`/write?id=${id}`}>
                             <PenSquare className="size-4" />
                             Edit Story
                         </Link>
                     </Button>
                 )}
+                */}
             </div>
 
             <div className="container max-w-4xl mx-auto px-4 -mt-32 relative z-20">
