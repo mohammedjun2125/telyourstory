@@ -26,42 +26,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
 
+    // MOCK USER FOR DEVELOPMENT
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-            setUser(currentUser);
+        const mockUser: any = {
+            uid: "mock-user-id",
+            displayName: "Test User",
+            email: "test@example.com",
+            photoURL: null, // or a placeholder image URL
+            emailVerified: true,
+            isAnonymous: false,
+            metadata: {},
+            providerData: [],
+            refreshToken: "",
+            tenantId: null,
+            delete: async () => { },
+            getIdToken: async () => "mock-token",
+            getIdTokenResult: async () => ({
+                token: "mock-token",
+                signInProvider: "google",
+                claims: {},
+                authTime: Date.now().toString(),
+                issuedAtTime: Date.now().toString(),
+                expirationTime: (Date.now() + 3600000).toString(),
+            }),
+            reload: async () => { },
+            toJSON: () => ({}),
+            phoneNumber: null,
+            providerId: "firebase",
+        };
 
-            if (currentUser) {
-                // Sync user to Firestore
-                const userDocRef = doc(db, "users", currentUser.uid);
-                const userDoc = await getDoc(userDocRef);
-
-                if (!userDoc.exists()) {
-                    await setDoc(userDocRef, {
-                        uid: currentUser.uid,
-                        name: currentUser.displayName || "Anonymous",
-                        email: currentUser.email,
-                        photo: currentUser.photoURL,
-                        createdAt: serverTimestamp(),
-                    });
-                }
-            }
-
-            setLoading(false);
-        });
-        return () => unsubscribe();
+        setUser(mockUser);
+        setLoading(false);
     }, []);
 
     const logout = async () => {
-        await signOut(auth);
+        // await signOut(auth);
+        console.log("Mock logout called");
+        window.location.reload(); // Optional: reload to simulate "reset", but mock user will just come back.
     };
 
     const signInWithGoogle = async () => {
-        try {
-            await signInWithPopup(auth, googleProvider);
-        } catch (error) {
-            console.error("Error signing in with Google", error);
-            throw error;
-        }
+        console.log("Mock sign in called - already logged in as mock user");
     };
 
     return (
